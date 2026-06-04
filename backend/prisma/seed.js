@@ -39,15 +39,22 @@ async function main() {
   });
 
   // Productos de ejemplo (asignados a la categoria Empanadas)
-  await prisma.product.createMany({
-    data: [
-      { nombre: 'Empanada de Pollo', descripcion: 'Pollo guisado criollo', imagen: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400', precio: 60, categoryId: empanadasCat.id },
-      { nombre: 'Empanada de Queso', descripcion: 'Queso derretido', imagen: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400', precio: 55, categoryId: empanadasCat.id },
-      { nombre: 'Empanada de Carne', descripcion: 'Carne molida sazonada', imagen: 'https://images.unsplash.com/photo-1625938145312-c88c6e9eaf12?w=400', precio: 65, categoryId: empanadasCat.id },
-      { nombre: 'Empanada Mixta', descripcion: 'Pollo, queso y vegetales', imagen: 'https://images.unsplash.com/photo-1568901839119-631418a3910d?w=400', precio: 70, categoryId: empanadasCat.id },
-    ],
-    skipDuplicates: true,
-  });
+  // Solo se crean si NO existe ya un producto con ese nombre, para que
+  // correr el seed varias veces no duplique productos.
+  const productosBase = [
+    { nombre: 'Empanada de Pollo', descripcion: 'Pollo guisado criollo', imagen: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400', precio: 60, categoryId: empanadasCat.id },
+    { nombre: 'Empanada de Queso', descripcion: 'Queso derretido', imagen: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400', precio: 55, categoryId: empanadasCat.id },
+    { nombre: 'Empanada de Carne', descripcion: 'Carne molida sazonada', imagen: 'https://images.unsplash.com/photo-1625938145312-c88c6e9eaf12?w=400', precio: 65, categoryId: empanadasCat.id },
+    { nombre: 'Empanada Mixta', descripcion: 'Pollo, queso y vegetales', imagen: 'https://images.unsplash.com/photo-1568901839119-631418a3910d?w=400', precio: 70, categoryId: empanadasCat.id },
+  ];
+  for (const prod of productosBase) {
+    const yaExiste = await prisma.product.findFirst({
+      where: { nombre: prod.nombre },
+    });
+    if (!yaExiste) {
+      await prisma.product.create({ data: prod });
+    }
+  }
 
   // Delivery de ejemplo
   await prisma.delivery.createMany({

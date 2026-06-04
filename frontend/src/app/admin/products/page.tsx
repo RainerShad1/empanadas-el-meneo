@@ -71,6 +71,17 @@ export default function AdminProducts() {
     });
   };
 
+  const remove = async (p: Product) => {
+    if (
+      !confirm(
+        `Eliminar "${p.nombre}"? Si ya tiene pedidos asociados, se ocultara en vez de borrarse (para no romper el historial).`,
+      )
+    )
+      return;
+    await api(`/products/${p.id}`, { method: 'DELETE' });
+    load();
+  };
+
   // --- Categorias ---
   const addCategory = async () => {
     if (!newCat.trim()) return;
@@ -242,6 +253,13 @@ export default function AdminProducts() {
             </button>
             <button onClick={() => edit(p)} className="text-muted text-sm px-2">
               ✏️
+            </button>
+            <button
+              onClick={() => remove(p)}
+              className="text-red-300 text-sm px-2"
+              aria-label="Eliminar producto"
+            >
+              🗑️
             </button>
           </div>
         ))}

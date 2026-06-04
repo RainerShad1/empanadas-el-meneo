@@ -32,4 +32,25 @@ export class ProductsService {
     if (!exists) throw new NotFoundException('Producto no encontrado');
     return this.prisma.product.update({ where: { id }, data: dto });
   }
+
+  async remove(id: string) {
+    const exists = await this.prisma.product.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Producto no encontrado');
+
+    // Si el producto ya esta en algun pedido, no se puede borrar fisicamente
+    // (romperia el historial de pedidos). En ese caso lo desactivamos.
+    const enPedidos = await this.prisma.orderItem.count({
+      where: { productId: id },
+    });
+
+    if (enPedidos > 0) {
+      await this.prisma.product.update({
+        where: { id },
+        data: { activo: false },
+      });
+      return { ok: true, soft: true };
+    }
+    await this.prisma.product.delete({ where: { id } });
+    return { ok: true, soft: false };
+  }
 }
