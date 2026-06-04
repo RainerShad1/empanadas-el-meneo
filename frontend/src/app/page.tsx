@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LocationGate from '@/components/LocationGate';
+import Logo from '@/components/Logo';
 import { useAuth } from '@/store/auth';
 
 export default function Home() {
@@ -33,9 +34,17 @@ export default function Home() {
 
   return (
     <main>
-      <div className="bg-gradient-to-b from-primary/20 to-transparent px-5 pt-10 pb-4">
-        <h1 className="text-3xl font-extrabold">Super Empanada El Meneo 🥟</h1>
-        <p className="text-muted mt-1">Calientes, crujientes, a tu puerta.</p>
+      <div className="bg-gradient-to-b from-primary/20 to-transparent px-5 pt-10 pb-6 flex flex-col items-center text-center">
+        <Logo size={96} />
+        <h1 className="text-2xl font-extrabold mt-4">
+          Super Empanada El Meneo
+        </h1>
+        <p className="text-primary font-semibold mt-1">
+          Gracias por preferirnos 🥟
+        </p>
+        <p className="text-muted text-sm mt-1">
+          Calientes, crujientes, a tu puerta.
+        </p>
       </div>
       <LocationGate onResolved={handleResolved} />
     </main>
