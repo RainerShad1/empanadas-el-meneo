@@ -45,6 +45,15 @@ model Address {
   orders    Order[]
 }
 
+model Category {
+  id        String    @id @default(uuid())
+  nombre    String    @unique
+  orden     Int       @default(0) // para ordenar las pestanas
+  activa    Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
 model Product {
   id          String      @id @default(uuid())
   nombre      String
@@ -52,6 +61,8 @@ model Product {
   imagen      String
   precio      Decimal     @db.Decimal(10, 2)
   activo      Boolean     @default(true)
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  categoryId  String?
   items       OrderItem[]
   createdAt   DateTime    @default(now())
 }

@@ -20,13 +20,31 @@ async function main() {
     },
   });
 
-  // Productos de ejemplo
+  // Categorias iniciales
+  const categorias = [
+    { nombre: 'Empanadas', orden: 1 },
+    { nombre: 'Refrescos', orden: 2 },
+    { nombre: 'Batidas', orden: 3 },
+    { nombre: 'Salsas', orden: 4 },
+  ];
+  for (const c of categorias) {
+    await prisma.category.upsert({
+      where: { nombre: c.nombre },
+      update: {},
+      create: c,
+    });
+  }
+  const empanadasCat = await prisma.category.findUnique({
+    where: { nombre: 'Empanadas' },
+  });
+
+  // Productos de ejemplo (asignados a la categoria Empanadas)
   await prisma.product.createMany({
     data: [
-      { nombre: 'Empanada de Pollo', descripcion: 'Pollo guisado criollo', imagen: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400', precio: 60 },
-      { nombre: 'Empanada de Queso', descripcion: 'Queso derretido', imagen: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400', precio: 55 },
-      { nombre: 'Empanada de Carne', descripcion: 'Carne molida sazonada', imagen: 'https://images.unsplash.com/photo-1625938145312-c88c6e9eaf12?w=400', precio: 65 },
-      { nombre: 'Empanada Mixta', descripcion: 'Pollo, queso y vegetales', imagen: 'https://images.unsplash.com/photo-1568901839119-631418a3910d?w=400', precio: 70 },
+      { nombre: 'Empanada de Pollo', descripcion: 'Pollo guisado criollo', imagen: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400', precio: 60, categoryId: empanadasCat.id },
+      { nombre: 'Empanada de Queso', descripcion: 'Queso derretido', imagen: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400', precio: 55, categoryId: empanadasCat.id },
+      { nombre: 'Empanada de Carne', descripcion: 'Carne molida sazonada', imagen: 'https://images.unsplash.com/photo-1625938145312-c88c6e9eaf12?w=400', precio: 65, categoryId: empanadasCat.id },
+      { nombre: 'Empanada Mixta', descripcion: 'Pollo, queso y vegetales', imagen: 'https://images.unsplash.com/photo-1568901839119-631418a3910d?w=400', precio: 70, categoryId: empanadasCat.id },
     ],
     skipDuplicates: true,
   });

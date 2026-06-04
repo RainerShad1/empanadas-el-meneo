@@ -132,6 +132,15 @@ body {
   animation: ringExpand 1s ease-out 0.3s infinite;
 }
 
+/* Ocultar scrollbar (pestanas de categorias) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Respeta la preferencia de accesibilidad: sin animaciones */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

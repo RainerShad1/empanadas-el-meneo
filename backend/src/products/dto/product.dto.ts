@@ -6,6 +6,7 @@ export class CreateProductDto {
   @IsString() imagen: string;
   @IsNumber() @Min(0) precio: number;
   @IsOptional() @IsBoolean() activo?: boolean;
+  @IsOptional() @IsString() categoryId?: string;
 }
 
 export class UpdateProductDto {
@@ -14,4 +15,5 @@ export class UpdateProductDto {
   @IsOptional() @IsString() imagen?: string;
   @IsOptional() @IsNumber() @Min(0) precio?: number;
   @IsOptional() @IsBoolean() activo?: boolean;
+  @IsOptional() @IsString() categoryId?: string | null;
 }

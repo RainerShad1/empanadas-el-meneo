@@ -1,6 +1,13 @@
 export type Role = 'CLIENTE' | 'ADMIN';
 export type OrderStatus = 'ENVIADO' | 'EN_CAMINO' | 'ENTREGADO' | 'CANCELADO';
 
+export interface Category {
+  id: string;
+  nombre: string;
+  orden: number;
+  activa?: boolean;
+}
+
 export interface Product {
   id: string;
   nombre: string;
@@ -8,6 +15,8 @@ export interface Product {
   imagen: string;
   precio: string; // Decimal llega como string
   activo: boolean;
+  categoryId?: string | null;
+  category?: Category | null;
 }
 
 export interface Address {

@@ -10,13 +10,17 @@ export class ProductsService {
   findActive() {
     return this.prisma.product.findMany({
       where: { activo: true },
+      include: { category: true },
       orderBy: { nombre: 'asc' },
     });
   }
 
   // Admin: todos
   findAll() {
-    return this.prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.product.findMany({
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   create(dto: CreateProductDto) {
