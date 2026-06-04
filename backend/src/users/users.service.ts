@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddressDto } from './dto/address.dto';
 
@@ -52,6 +53,54 @@ export class UsersService {
       // Sin pedidos asociados: borrado real
       await this.prisma.address.delete({ where: { id: addressId } });
     }
+    return { ok: true };
+  }
+
+  // El cliente edita sus propios datos (nombre, telefono y/o contrasena)
+  async updateProfile(
+    userId: string,
+    dto: { nombre?: string; telefono?: string; password?: string },
+  ) {
+    const data: any = {};
+    if (dto.nombre) data.nombre = dto.nombre;
+    if (dto.telefono) data.telefono = dto.telefono;
+    if (dto.password) {
+      if (dto.password.length < 8)
+        throw new NotFoundException('La contrasena debe tener al menos 8 caracteres');
+      data.password = await bcrypt.hash(dto.password, 10);
+    }
+    await this.prisma.user.update({ where: { id: userId }, data });
+    return { ok: true };
+  }
+
+  // ADMIN: busca clientes por nombre o cedula
+  searchClients(q: string) {
+    return this.prisma.user.findMany({
+      where: {
+        role: 'CLIENTE',
+        OR: [
+          { nombre: { contains: q, mode: 'insensitive' } },
+          { cedula: { contains: q } },
+        ],
+      },
+      select: { id: true, nombre: true, cedula: true, telefono: true },
+      take: 20,
+    });
+  }
+
+  // ADMIN: resetea la contrasena de un cliente (recuperacion asistida)
+  async resetPassword(targetUserId: string, nuevaPassword: string) {
+    if (!nuevaPassword || nuevaPassword.length < 8)
+      throw new NotFoundException('La contrasena debe tener al menos 8 caracteres');
+    const user = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    const hash = await bcrypt.hash(nuevaPassword, 10);
+    await this.prisma.user.update({
+      where: { id: targetUserId },
+      data: { password: hash },
+    });
     return { ok: true };
   }
 }

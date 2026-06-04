@@ -14,6 +14,14 @@ interface ConfigResp {
   horaCierre: string;
 }
 
+// Convierte "23:00" -> "11:00 PM"
+function to12h(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 export default function Menu() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -40,13 +48,26 @@ export default function Menu() {
 
   return (
     <main className={`px-4 pt-6 ${showCartButton ? 'pb-40' : ''}`}>
-      <div className="flex items-center gap-3 mb-4">
-        <Logo size={48} />
-        <div>
-          <h1 className="text-xl font-extrabold leading-tight">
+      <div className="flex items-center gap-3 mb-5">
+        <Logo size={40} />
+        <div className="min-w-0">
+          <h1 className="text-base font-extrabold leading-tight truncate">
             Super Empanada El Meneo
           </h1>
-          <p className="text-muted text-xs">Menu 🥟</p>
+          {config && (
+            <p className="text-xs flex items-center gap-1">
+              <span
+                className={`inline-block w-1.5 h-1.5 rounded-full ${
+                  config.abiertoAhora ? 'bg-green-400' : 'bg-red-400'
+                }`}
+              />
+              <span className="text-muted">
+                {config.abiertoAhora
+                  ? `Abierto hasta ${to12h(config.horaCierre)}`
+                  : `Cerrado · abre ${to12h(config.horaApertura)}`}
+              </span>
+            </p>
+          )}
         </div>
       </div>
 

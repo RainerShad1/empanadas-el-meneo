@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/store/auth';
 import Logo from '@/components/Logo';
+import PasswordInput from '@/components/PasswordInput';
+import { formatCedula, cedulaDigits } from '@/lib/cedula';
 
 export default function Register() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function Register() {
     nombre: '',
     telefono: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,6 +42,15 @@ export default function Register() {
 
   const submit = async () => {
     setError('');
+    // Validar que las contrasenas coincidan
+    if (form.password !== confirmPassword) {
+      setError('Las contrasenas no coinciden');
+      return;
+    }
+    if (form.password.length < 8) {
+      setError('La contrasena debe tener al menos 8 caracteres');
+      return;
+    }
     setLoading(true);
     try {
       const res = await api<{
@@ -46,7 +58,7 @@ export default function Register() {
         role: 'CLIENTE' | 'ADMIN';
       }>('/auth/register', {
         method: 'POST',
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, cedula: cedulaDigits(form.cedula) }),
       });
       localStorage.setItem('token', res.access_token);
       const me = await api<{ id: string }>('/users/me');
@@ -70,24 +82,41 @@ export default function Register() {
       <div className="space-y-3">
         <input
           className="input"
+          name="name"
+          autoComplete="name"
           placeholder="Nombre completo"
           onChange={(e) => upd('nombre', e.target.value)}
         />
         <input
           className="input"
+          name="username"
+          autoComplete="username"
+          inputMode="numeric"
           placeholder="Cedula (000-0000000-0)"
-          onChange={(e) => upd('cedula', e.target.value)}
+          value={form.cedula}
+          onChange={(e) => upd('cedula', formatCedula(e.target.value))}
         />
         <input
           className="input"
+          name="phone"
+          autoComplete="tel"
+          inputMode="numeric"
           placeholder="Telefono (10 digitos)"
           onChange={(e) => upd('telefono', e.target.value)}
         />
-        <input
-          className="input"
-          type="password"
+        <PasswordInput
+          value={form.password}
+          onChange={(v) => upd('password', v)}
           placeholder="Contrasena (min. 8)"
-          onChange={(e) => upd('password', e.target.value)}
+          autoComplete="new-password"
+          name="new-password"
+        />
+        <PasswordInput
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          placeholder="Repetir contrasena"
+          autoComplete="new-password"
+          name="confirm-password"
         />
       </div>
       {error && <p className="text-primary text-sm mt-3">{error}</p>}
