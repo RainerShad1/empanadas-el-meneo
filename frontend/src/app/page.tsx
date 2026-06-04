@@ -1,9 +1,20 @@
 'use client';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LocationGate from '@/components/LocationGate';
+import { useAuth } from '@/store/auth';
 
 export default function Home() {
   const router = useRouter();
+  const { token, role, hydrated } = useAuth();
+
+  // Si ya tiene sesion activa, va directo a donde corresponde segun su rol
+  // (no tiene sentido volver a pedirle la ubicacion).
+  useEffect(() => {
+    if (hydrated && token) {
+      router.replace(role === 'ADMIN' ? '/admin' : '/menu');
+    }
+  }, [hydrated, token, role, router]);
 
   const handleResolved = (data: {
     lat?: number;
@@ -14,6 +25,11 @@ export default function Home() {
     sessionStorage.setItem('pending_location', JSON.stringify(data));
     router.push('/register');
   };
+
+  // Mientras decide (rehidratando) o si ya hay sesion, no parpadea la landing
+  if (!hydrated || token) {
+    return <div className="p-6 text-muted">Cargando...</div>;
+  }
 
   return (
     <main>
