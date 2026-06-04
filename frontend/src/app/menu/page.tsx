@@ -28,6 +28,7 @@ export default function Menu() {
   const [activeCat, setActiveCat] = useState<string>('all'); // 'all' o categoryId
   const [cartOpen, setCartOpen] = useState(false);
   const [config, setConfig] = useState<ConfigResp | null>(null);
+  const [nombre, setNombre] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const hydrated = useCart((s) => s.hydrated);
   const count = useCart((s) => s.count());
@@ -46,6 +47,14 @@ export default function Menu() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Nombre del cliente para el saludo (no bloquea el menu si falla)
+    api<{ nombre: string }>('/users/me')
+      .then((u) => {
+        // Tomamos solo el primer nombre para que quepa
+        setNombre(u.nombre?.split(' ')[0] || '');
+      })
+      .catch(() => {});
   }, []);
 
   // Filtrado por categoria
@@ -59,10 +68,10 @@ export default function Menu() {
   return (
     <main className={`px-4 pt-6 ${showCartButton ? 'pb-40' : ''}`}>
       <div className="flex items-center gap-3 mb-5">
-        <Logo size={40} />
+        <Logo size={44} />
         <div className="min-w-0">
-          <h1 className="text-base font-extrabold leading-tight truncate">
-            Super Empanada El Meneo
+          <h1 className="text-lg font-extrabold leading-tight truncate">
+            {nombre ? `Hola, ${nombre} 👋` : 'Super Empanada El Meneo'}
           </h1>
           {config && (
             <p className="text-xs flex items-center gap-1">
@@ -71,7 +80,7 @@ export default function Menu() {
                   config.abiertoAhora ? 'bg-green-400' : 'bg-red-400'
                 }`}
               />
-              <span className="text-muted">
+              <span className="text-muted truncate">
                 {config.abiertoAhora
                   ? `Abierto hasta ${to12h(config.horaCierre)}`
                   : `Cerrado · abre ${to12h(config.horaApertura)}`}
