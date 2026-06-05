@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search, Bell, Clock } from 'lucide-react';
+import { Search, Bell, Clock, ShoppingCart, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Product, Category } from '@/types';
 import ProductCard from '@/components/ProductCard';
@@ -153,7 +153,7 @@ export default function Menu() {
 
       {/* ===== Chips de categorias ===== */}
       {categories.length > 0 && (
-        <div className="flex gap-3 overflow-x-auto px-4 py-3 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
           <CatChip
             label="Todos"
             emoji="🍽️"
@@ -202,15 +202,26 @@ export default function Menu() {
       {showCartButton && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed bottom-24 inset-x-4 bg-primary text-black rounded-2xl px-5 py-4 flex justify-between items-center z-30 animate-fade-in-up shadow-xl shadow-primary/30 font-bold"
+          className="fixed bottom-[80px] inset-x-4 bg-primary text-black rounded-full pl-4 pr-5 py-2.5 flex justify-between items-center z-30 animate-fade-in-up shadow-xl shadow-primary/30"
         >
-          <span className="flex items-center gap-2">
-            <span className="bg-black/15 rounded-full w-7 h-7 flex items-center justify-center text-sm">
-              {count}
+          <span className="flex items-center gap-3">
+            <span className="relative">
+              <ShoppingCart size={22} strokeWidth={2.4} />
+              <span className="absolute -top-2 -right-2 bg-accent-red text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                {count}
+              </span>
             </span>
-            Ver pedido
+            <span className="text-left leading-tight">
+              <span className="block font-bold text-sm">Ver pedido</span>
+              <span className="block text-[11px] text-black/70">
+                {count} producto{count !== 1 ? 's' : ''}
+              </span>
+            </span>
           </span>
-          <span>RD${total.toFixed(2)}</span>
+          <span className="flex items-center gap-0.5 font-extrabold">
+            RD${total.toFixed(2)}
+            <ChevronRight size={18} strokeWidth={2.6} />
+          </span>
         </button>
       )}
 
@@ -235,16 +246,16 @@ function CatChip({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 min-w-[72px] py-3 px-2 rounded-2xl transition-all ${
+      className={`flex flex-col items-center justify-center gap-1 w-[64px] h-[64px] rounded-2xl transition-all shrink-0 ${
         active
-          ? 'bg-primary/15 border-2 border-primary'
+          ? 'bg-card border-2 border-primary'
           : 'bg-card border-2 border-transparent'
       }`}
     >
-      <span className="text-2xl">{emoji}</span>
+      <span className="text-2xl leading-none">{emoji}</span>
       <span
-        className={`text-xs font-medium whitespace-nowrap ${
-          active ? 'text-primary' : 'text-muted'
+        className={`text-[10px] font-medium whitespace-nowrap ${
+          active ? 'text-primary' : 'text-white'
         }`}
       >
         {label}
