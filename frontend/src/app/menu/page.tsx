@@ -202,23 +202,18 @@ export default function Menu() {
       {showCartButton && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed bottom-[80px] inset-x-4 bg-primary text-black rounded-full pl-4 pr-5 py-2.5 flex justify-between items-center z-30 animate-fade-in-up shadow-xl shadow-primary/30"
+          className="fixed bottom-[78px] inset-x-5 bg-primary text-black rounded-full pl-3.5 pr-4 py-2 flex justify-between items-center z-30 animate-fade-in-up shadow-xl shadow-primary/30"
         >
-          <span className="flex items-center gap-3">
+          <span className="flex items-center gap-2.5">
             <span className="relative">
-              <ShoppingCart size={22} strokeWidth={2.4} />
+              <ShoppingCart size={20} strokeWidth={2.4} />
               <span className="absolute -top-2 -right-2 bg-accent-red text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                 {count}
               </span>
             </span>
-            <span className="text-left leading-tight">
-              <span className="block font-bold text-sm">Ver pedido</span>
-              <span className="block text-[11px] text-black/70">
-                {count} producto{count !== 1 ? 's' : ''}
-              </span>
-            </span>
+            <span className="font-bold text-sm">Ver pedido</span>
           </span>
-          <span className="flex items-center gap-0.5 font-extrabold">
+          <span className="flex items-center gap-0.5 font-extrabold text-sm">
             RD${total.toFixed(2)}
             <ChevronRight size={18} strokeWidth={2.6} />
           </span>
