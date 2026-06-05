@@ -202,7 +202,7 @@ export default function CartSheet({
               <button
                 onClick={enviarPedido}
                 disabled={loading}
-                className="flex-1 bg-primary text-white rounded-xl py-3 text-sm font-semibold"
+                className="flex-1 bg-primary text-black rounded-xl py-3 text-sm font-semibold"
               >
                 {loading ? 'Enviando...' : 'Si, hacer otro pedido'}
               </button>

@@ -10,7 +10,7 @@ export default function SoundToggle({
     <button
       onClick={onToggle}
       className={`px-3 py-2 rounded-xl text-sm ${
-        on ? 'bg-primary text-white' : 'bg-card text-muted'
+        on ? 'bg-primary text-black' : 'bg-card text-muted'
       }`}
     >
       {on ? '🔔 Sonido activado' : '🔕 Sonido apagado'}

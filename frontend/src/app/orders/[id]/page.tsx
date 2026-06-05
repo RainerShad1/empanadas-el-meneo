@@ -84,7 +84,7 @@ export default function OrderTracking() {
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-500 ${
                   i <= currentIdx
-                    ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/40'
+                    ? 'bg-primary text-black scale-110 shadow-lg shadow-primary/40'
                     : 'bg-card text-muted'
                 }`}
               >

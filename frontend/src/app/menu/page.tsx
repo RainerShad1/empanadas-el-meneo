@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { Search, Bell, Clock } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Product, Category } from '@/types';
 import ProductCard from '@/components/ProductCard';
@@ -25,7 +26,9 @@ function to12h(hhmm: string): string {
 export default function Menu() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCat, setActiveCat] = useState<string>('all'); // 'all' o categoryId
+  const [activeCat, setActiveCat] = useState<string>('all');
+  const [search, setSearch] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [config, setConfig] = useState<ConfigResp | null>(null);
   const [nombre, setNombre] = useState<string>('');
@@ -48,109 +51,165 @@ export default function Menu() {
       .catch(() => {})
       .finally(() => setLoading(false));
 
-    // Nombre del cliente para el saludo (no bloquea el menu si falla)
     api<{ nombre: string }>('/users/me')
-      .then((u) => {
-        // Tomamos solo el primer nombre para que quepa
-        setNombre(u.nombre?.split(' ')[0] || '');
-      })
+      .then((u) => setNombre(u.nombre?.split(' ')[0] || ''))
       .catch(() => {});
   }, []);
 
-  // Filtrado por categoria
-  const filtered =
-    activeCat === 'all'
-      ? products
-      : products.filter((p) => p.categoryId === activeCat);
+  // Filtrado por categoria + busqueda
+  const filtered = products.filter((p) => {
+    const matchCat = activeCat === 'all' || p.categoryId === activeCat;
+    const matchSearch =
+      !search ||
+      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      p.descripcion.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
   const showCartButton = hydrated && count > 0 && config?.abiertoAhora;
 
+  // Emoji por categoria (visual, para los chips)
+  const catEmoji: Record<string, string> = {
+    Empanadas: '🥟',
+    Refrescos: '🥤',
+    Batidas: '🍓',
+    Salsas: '🌶️',
+    Combos: '📦',
+  };
+
   return (
-    <main className={`px-4 pt-6 ${showCartButton ? 'pb-40' : ''}`}>
-      <div className="flex items-center gap-3 mb-5">
-        <Logo size={44} />
-        <div className="min-w-0">
-          <h1 className="text-lg font-extrabold leading-tight truncate">
-            {nombre ? `Hola, ${nombre} 👋` : 'Super Empanada El Meneo'}
-          </h1>
-          {config && (
-            <p className="text-xs flex items-center gap-1">
-              <span
-                className={`inline-block w-1.5 h-1.5 rounded-full ${
-                  config.abiertoAhora ? 'bg-green-400' : 'bg-red-400'
-                }`}
-              />
-              <span className="text-muted truncate">
-                {config.abiertoAhora
-                  ? `Abierto hasta ${to12h(config.horaCierre)}`
-                  : `Cerrado · abre ${to12h(config.horaApertura)}`}
-              </span>
-            </p>
-          )}
+    <main className={`pb-28 ${showCartButton ? 'pb-40' : ''}`}>
+      {/* ===== Header ===== */}
+      <div className="bg-gradient-to-b from-primary/10 to-transparent px-4 pt-6 pb-2">
+        <div className="flex items-center gap-3">
+          <Logo size={46} />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg font-extrabold leading-tight truncate">
+              {nombre ? `Hola, ${nombre} 👋` : 'Super Empanada El Meneo'}
+            </h1>
+            {config && (
+              <div className="flex items-center gap-3 text-xs mt-0.5">
+                <span className="flex items-center gap-1">
+                  <span
+                    className={`inline-block w-1.5 h-1.5 rounded-full ${
+                      config.abiertoAhora ? 'bg-green-400' : 'bg-red-400'
+                    }`}
+                  />
+                  <span className="text-muted">
+                    {config.abiertoAhora ? 'Abierto ahora' : 'Cerrado'}
+                  </span>
+                </span>
+                {config.abiertoAhora && (
+                  <span className="flex items-center gap-1 text-muted">
+                    <Clock size={12} /> 25-40 min
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          {/* Acciones */}
+          <button
+            onClick={() => setSearchOpen((s) => !s)}
+            className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-white"
+            aria-label="Buscar"
+          >
+            <Search size={20} />
+          </button>
+          <button
+            className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-white relative"
+            aria-label="Notificaciones"
+          >
+            <Bell size={20} />
+          </button>
         </div>
       </div>
 
-      {/* Aviso de cerrado (FASE: horarios) */}
+      {/* ===== Barra de busqueda (desplegable) ===== */}
+      {searchOpen && (
+        <div className="px-4 pb-2 animate-fade-in">
+          <div className="relative">
+            <Search
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+            />
+            <input
+              autoFocus
+              className="input pl-11"
+              placeholder="Buscar empanadas, combos y mas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Aviso de cerrado */}
       {config && !config.abiertoAhora && (
-        <div className="bg-red-500/15 text-red-300 rounded-xl p-3 mb-4 text-sm">
-          Estamos cerrados en este momento. Horario: {config.horaApertura} a{' '}
-          {config.horaCierre}. Puedes ver el menu pero no enviar pedidos.
+        <div className="mx-4 bg-red-500/15 text-red-300 rounded-xl p-3 my-2 text-sm">
+          Estamos cerrados. Horario: {to12h(config.horaApertura)} a{' '}
+          {to12h(config.horaCierre)}. Puedes ver el menu pero no enviar pedidos.
         </div>
       )}
 
-      {/* Pestanas de categorias */}
+      {/* ===== Chips de categorias ===== */}
       {categories.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-4 px-4 scrollbar-hide">
-          <button
+        <div className="flex gap-3 overflow-x-auto px-4 py-3 scrollbar-hide">
+          <CatChip
+            label="Todos"
+            emoji="🍽️"
+            active={activeCat === 'all'}
             onClick={() => setActiveCat('all')}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeCat === 'all'
-                ? 'bg-primary text-white'
-                : 'bg-card text-muted'
-            }`}
-          >
-            Todos
-          </button>
+          />
           {categories.map((cat) => (
-            <button
+            <CatChip
               key={cat.id}
+              label={cat.nombre}
+              emoji={catEmoji[cat.nombre] || '🍴'}
+              active={activeCat === cat.id}
               onClick={() => setActiveCat(cat.id)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCat === cat.id
-                  ? 'bg-primary text-white'
-                  : 'bg-card text-muted'
-              }`}
-            >
-              {cat.nombre}
-            </button>
+            />
           ))}
         </div>
       )}
 
-      {loading ? (
-        <div className="grid grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="skeleton rounded-2xl h-52" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-muted text-center py-10">
-          No hay productos en esta categoria.
-        </p>
-      ) : (
-        <div key={activeCat} className="grid grid-cols-2 gap-3 stagger">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      )}
+      {/* ===== Grid de productos ===== */}
+      <div className="px-4 mt-1">
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton rounded-2xl h-56" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="text-muted text-center py-10">
+            {search
+              ? `No encontramos "${search}".`
+              : 'No hay productos en esta categoria.'}
+          </p>
+        ) : (
+          <div
+            key={activeCat + search}
+            className="grid grid-cols-2 gap-3 stagger"
+          >
+            {filtered.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
+      </div>
 
+      {/* ===== Carrito flotante ===== */}
       {showCartButton && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed bottom-24 inset-x-4 btn-primary flex justify-between z-30 animate-fade-in-up shadow-xl shadow-primary/30"
+          className="fixed bottom-24 inset-x-4 bg-primary text-black rounded-2xl px-5 py-4 flex justify-between items-center z-30 animate-fade-in-up shadow-xl shadow-primary/30 font-bold"
         >
-          <span>Ver carrito ({count})</span>
+          <span className="flex items-center gap-2">
+            <span className="bg-black/15 rounded-full w-7 h-7 flex items-center justify-center text-sm">
+              {count}
+            </span>
+            Ver pedido
+          </span>
           <span>RD${total.toFixed(2)}</span>
         </button>
       )}
@@ -158,5 +217,38 @@ export default function Menu() {
       <CartSheet open={cartOpen} onClose={() => setCartOpen(false)} />
       <BottomNav />
     </main>
+  );
+}
+
+// Chip de categoria estilo "tarjeta" (como el mockup)
+function CatChip({
+  label,
+  emoji,
+  active,
+  onClick,
+}: {
+  label: string;
+  emoji: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1 min-w-[72px] py-3 px-2 rounded-2xl transition-all ${
+        active
+          ? 'bg-primary/15 border-2 border-primary'
+          : 'bg-card border-2 border-transparent'
+      }`}
+    >
+      <span className="text-2xl">{emoji}</span>
+      <span
+        className={`text-xs font-medium whitespace-nowrap ${
+          active ? 'text-primary' : 'text-muted'
+        }`}
+      >
+        {label}
+      </span>
+    </button>
   );
 }

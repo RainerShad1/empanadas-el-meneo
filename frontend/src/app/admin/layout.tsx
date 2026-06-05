@@ -49,7 +49,7 @@ export default function AdminLayout({
             href={n.href}
             className={`px-3 py-2 rounded-xl text-sm flex-1 md:flex-none text-center md:text-left ${
               path === n.href
-                ? 'bg-primary text-white'
+                ? 'bg-primary text-black'
                 : 'text-muted hover:bg-card'
             }`}
           >

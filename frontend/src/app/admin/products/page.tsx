@@ -130,7 +130,7 @@ export default function AdminProducts() {
             />
             <button
               onClick={addCategory}
-              className="bg-primary text-white rounded-xl px-4 font-semibold"
+              className="bg-primary text-black rounded-xl px-4 font-semibold"
             >
               Agregar
             </button>

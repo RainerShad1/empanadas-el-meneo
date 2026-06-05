@@ -133,7 +133,7 @@ export default function AdminOrderDetail() {
             <button
               onClick={assign}
               disabled={busy}
-              className="bg-primary text-white rounded-xl px-4"
+              className="bg-primary text-black rounded-xl px-4"
             >
               Asignar
             </button>
@@ -162,7 +162,7 @@ export default function AdminOrderDetail() {
             key={s.value}
             onClick={() => changeStatus(s.value)}
             disabled={busy}
-            className="bg-primary text-white rounded-xl px-4 py-3 flex-1"
+            className="bg-primary text-black rounded-xl px-4 py-3 flex-1"
           >
             {s.label}
           </button>

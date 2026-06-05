@@ -75,7 +75,7 @@ export default function AdminClientes() {
         <button
           onClick={search}
           disabled={searching}
-          className="bg-primary text-white rounded-xl px-5 font-semibold"
+          className="bg-primary text-black rounded-xl px-5 font-semibold"
         >
           {searching ? '...' : 'Buscar'}
         </button>

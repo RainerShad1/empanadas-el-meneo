@@ -35,7 +35,7 @@ export default function AdminReports() {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-2 rounded-xl text-sm ${
-                filter === f ? 'bg-primary text-white' : 'bg-card text-muted'
+                filter === f ? 'bg-primary text-black' : 'bg-card text-muted'
               }`}
             >
               {f === 'today' ? 'Hoy' : 'Todo'}

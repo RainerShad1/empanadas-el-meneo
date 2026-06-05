@@ -11,7 +11,7 @@ body {
 
 /* Botones grandes touch-friendly */
 .btn-primary {
-  @apply bg-primary active:bg-primary-dark text-white font-semibold
+  @apply bg-primary active:bg-primary-dark text-black font-bold
          rounded-xl py-4 px-6 text-base w-full transition
          disabled:opacity-50 disabled:pointer-events-none;
 }
