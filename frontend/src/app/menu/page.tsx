@@ -175,9 +175,9 @@ export default function Menu() {
       {/* ===== Grid de productos ===== */}
       <div className="px-4 mt-1">
         {loading ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col gap-2.5">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="skeleton rounded-2xl h-40" />
+              <div key={i} className="skeleton rounded-2xl h-24" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -189,7 +189,7 @@ export default function Menu() {
         ) : (
           <div
             key={activeCat + search}
-            className="grid grid-cols-3 gap-2 stagger"
+            className="flex flex-col gap-2.5 stagger"
           >
             {filtered.map((p) => (
               <ProductCard key={p.id} product={p} />
