@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search, Bell, Clock, ShoppingCart, ChevronRight } from 'lucide-react';
+import { Search, Bell, Clock, ShoppingCart, ChevronRight, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Product, Category } from '@/types';
+import { getCategoryIcon } from '@/lib/categoryIcon';
 import ProductCard from '@/components/ProductCard';
 import CartSheet from '@/components/CartSheet';
 import BottomNav from '@/components/BottomNav';
@@ -67,15 +68,6 @@ export default function Menu() {
   });
 
   const showCartButton = hydrated && count > 0 && config?.abiertoAhora;
-
-  // Emoji por categoria (visual, para los chips)
-  const catEmoji: Record<string, string> = {
-    Empanadas: '🥟',
-    Refrescos: '🥤',
-    Batidas: '🍓',
-    Salsas: '🌶️',
-    Combos: '📦',
-  };
 
   return (
     <main className={`pb-28 ${showCartButton ? 'pb-40' : ''}`}>
@@ -153,10 +145,10 @@ export default function Menu() {
 
       {/* ===== Chips de categorias ===== */}
       {categories.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide">
           <CatChip
             label="Todos"
-            emoji="🍽️"
+            Icon={UtensilsCrossed}
             active={activeCat === 'all'}
             onClick={() => setActiveCat('all')}
           />
@@ -164,7 +156,7 @@ export default function Menu() {
             <CatChip
               key={cat.id}
               label={cat.nombre}
-              emoji={catEmoji[cat.nombre] || '🍴'}
+              Icon={getCategoryIcon(cat.nombre)}
               active={activeCat === cat.id}
               onClick={() => setActiveCat(cat.id)}
             />
@@ -226,35 +218,29 @@ export default function Menu() {
   );
 }
 
-// Chip de categoria estilo "tarjeta" (como el mockup)
+// Chip de categoria plano, redondeado (pildora), con icono al lado
 function CatChip({
   label,
-  emoji,
+  Icon,
   active,
   onClick,
 }: {
   label: string;
-  emoji: string;
+  Icon: LucideIcon;
   active: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 w-[64px] h-[64px] rounded-2xl transition-all shrink-0 ${
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
         active
-          ? 'bg-card border-2 border-primary'
-          : 'bg-card border-2 border-transparent'
+          ? 'bg-primary text-black'
+          : 'bg-card text-muted'
       }`}
     >
-      <span className="text-2xl leading-none">{emoji}</span>
-      <span
-        className={`text-[10px] font-medium whitespace-nowrap ${
-          active ? 'text-primary' : 'text-white'
-        }`}
-      >
-        {label}
-      </span>
+      <Icon size={14} strokeWidth={2.4} />
+      {label}
     </button>
   );
 }
