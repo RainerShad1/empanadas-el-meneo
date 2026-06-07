@@ -203,7 +203,7 @@ export default function Menu() {
       {showCartButton && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed inset-x-4 h-14 bg-primary text-black rounded-full pl-5 pr-2 flex justify-between items-center z-30 animate-fade-in-up shadow-primary"
+          className="fixed inset-x-4 h-14 bg-primary text-black rounded-full pl-5 pr-2 flex justify-between items-center z-30 animate-fade-in-up shadow-pop"
           style={{ bottom: 'calc(var(--bottom-nav-h, 64px) + 14px)' }}
         >
           <span className="flex items-center gap-2.5 font-bold text-[15px]">

@@ -74,7 +74,7 @@ export default function Home() {
             <button
               onClick={askGps}
               disabled={loading}
-              className="btn-primary shadow-primary flex items-center justify-center gap-2"
+              className="btn-primary flex items-center justify-center gap-2"
             >
               <MapPin size={20} strokeWidth={2.4} />
               {loading ? 'Obteniendo ubicación...' : 'Usar mi ubicación actual'}
@@ -97,7 +97,7 @@ export default function Home() {
             />
             <button
               onClick={() => manual.trim() && resolve({ manual })}
-              className="btn-primary shadow-primary"
+              className="btn-primary"
             >
               Continuar
             </button>
