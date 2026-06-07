@@ -1,13 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search, Bell, Clock, ShoppingCart, ChevronRight, UtensilsCrossed, type LucideIcon } from 'lucide-react';
+import { Search, Bell, Clock, ShoppingCart, UtensilsCrossed, type LucideIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Product, Category } from '@/types';
 import { getCategoryIcon } from '@/lib/categoryIcon';
 import ProductCard from '@/components/ProductCard';
 import CartSheet from '@/components/CartSheet';
 import BottomNav from '@/components/BottomNav';
-import Logo from '@/components/Logo';
 import { useCart } from '@/store/cart';
 
 interface ConfigResp {
@@ -29,7 +28,6 @@ export default function Menu() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCat, setActiveCat] = useState<string>('all');
   const [search, setSearch] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [config, setConfig] = useState<ConfigResp | null>(null);
   const [nombre, setNombre] = useState<string>('');
@@ -72,68 +70,70 @@ export default function Menu() {
   return (
     <main className={`pb-28 ${showCartButton ? 'pb-40' : ''}`}>
       {/* ===== Header ===== */}
-      <div className="bg-gradient-to-b from-primary/10 to-transparent px-4 pt-6 pb-2">
-        <div className="flex items-center gap-3">
-          <Logo size={46} />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-extrabold leading-tight truncate">
-              {nombre ? `Hola, ${nombre} 👋` : 'Super Empanada El Meneo'}
+      <div className="px-4 pt-5 pb-2">
+        <div className="flex items-start justify-between">
+          <div className="min-w-0">
+            <p className="text-muted text-[13px]">Hola,</p>
+            <h1 className="text-[22px] font-extrabold leading-tight tracking-tight truncate">
+              {nombre ? `${nombre} 👋` : 'Super Empanada El Meneo'}
             </h1>
-            {config && (
-              <div className="flex items-center gap-3 text-xs mt-0.5">
-                <span className="flex items-center gap-1">
-                  <span
-                    className={`inline-block w-1.5 h-1.5 rounded-full ${
-                      config.abiertoAhora ? 'bg-green-400' : 'bg-red-400'
-                    }`}
-                  />
-                  <span className="text-muted">
-                    {config.abiertoAhora ? 'Abierto ahora' : 'Cerrado'}
-                  </span>
-                </span>
-                {config.abiertoAhora && (
-                  <span className="flex items-center gap-1 text-muted">
-                    <Clock size={12} /> 25-40 min
-                  </span>
-                )}
-              </div>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-white"
+              aria-label="Buscar"
+            >
+              <Search size={20} />
+            </button>
+            <button
+              className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-white relative"
+              aria-label="Notificaciones"
+            >
+              <Bell size={20} />
+              {/* Badge de notificaciones (pendiente de conectar a backend) */}
+            </button>
+          </div>
+        </div>
+
+        {/* Estado + ETA */}
+        {config && (
+          <div className="flex items-center gap-3.5 mt-3.5">
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{
+                  background: config.abiertoAhora ? 'var(--dot-open, #4ade80)' : '#f87171',
+                  boxShadow: config.abiertoAhora
+                    ? '0 0 0 3px rgba(74,222,128,0.18)'
+                    : '0 0 0 3px rgba(248,113,113,0.18)',
+                }}
+              />
+              {config.abiertoAhora ? 'Abierto ahora' : 'Cerrado'}
+            </span>
+            {config.abiertoAhora && (
+              <span className="inline-flex items-center gap-1.5 text-[13px] text-muted">
+                <Clock size={15} /> 25-40 min
+              </span>
             )}
           </div>
-          {/* Acciones */}
-          <button
-            onClick={() => setSearchOpen((s) => !s)}
-            className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-white"
-            aria-label="Buscar"
-          >
-            <Search size={20} />
-          </button>
-          <button
-            className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-white relative"
-            aria-label="Notificaciones"
-          >
-            <Bell size={20} />
-          </button>
-        </div>
+        )}
       </div>
 
-      {/* ===== Barra de busqueda (desplegable) ===== */}
-      {searchOpen && (
-        <div className="px-4 pb-2 animate-fade-in">
-          <div className="relative">
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
-            />
-            <input
-              autoFocus
-              className="input pl-11"
-              placeholder="Buscar empanadas, combos y mas..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+      {/* ===== Barra de busqueda (siempre visible) ===== */}
+      <div className="px-4 pt-2 pb-1">
+        <div className="relative">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
+          />
+          <input
+            className="input pl-11"
+            placeholder="Buscar empanadas, batidas…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      )}
+      </div>
 
       {/* Aviso de cerrado */}
       {config && !config.abiertoAhora && (
@@ -164,6 +164,15 @@ export default function Menu() {
         </div>
       )}
 
+      {/* ===== Titulo de seccion (categoria activa) ===== */}
+      {!loading && filtered.length > 0 && (
+        <h2 className="mx-4 mt-3.5 mb-2.5 text-[17px] font-extrabold">
+          {activeCat === 'all'
+            ? 'Todo el menú'
+            : categories.find((c) => c.id === activeCat)?.nombre || 'Menú'}
+        </h2>
+      )}
+
       {/* ===== Grid de productos ===== */}
       <div className="px-4 mt-1">
         {loading ? (
@@ -175,7 +184,7 @@ export default function Menu() {
         ) : filtered.length === 0 ? (
           <p className="text-muted text-center py-10">
             {search
-              ? `No encontramos "${search}".`
+              ? `Nada por aquí… prueba otra búsqueda.`
               : 'No hay productos en esta categoria.'}
           </p>
         ) : (
@@ -190,24 +199,22 @@ export default function Menu() {
         )}
       </div>
 
-      {/* ===== Carrito flotante ===== */}
+      {/* ===== Carrito flotante (estilo mock) ===== */}
       {showCartButton && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed bottom-[78px] inset-x-5 bg-primary text-black rounded-full pl-3.5 pr-4 py-2 flex justify-between items-center z-30 animate-fade-in-up shadow-xl shadow-primary/30"
+          className="fixed inset-x-4 h-14 bg-primary text-black rounded-full pl-5 pr-2 flex justify-between items-center z-30 animate-fade-in-up shadow-primary"
+          style={{ bottom: 'calc(var(--bottom-nav-h, 64px) + 14px)' }}
         >
-          <span className="flex items-center gap-2.5">
-            <span className="relative">
-              <ShoppingCart size={20} strokeWidth={2.4} />
-              <span className="absolute -top-2 -right-2 bg-accent-red text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {count}
-              </span>
+          <span className="flex items-center gap-2.5 font-bold text-[15px]">
+            <span className="min-w-6 h-6 px-1.5 rounded-full bg-black/[0.18] flex items-center justify-center text-[13px]">
+              {count}
             </span>
-            <span className="font-bold text-sm">Ver pedido</span>
+            Ver mi pedido
           </span>
-          <span className="flex items-center gap-0.5 font-extrabold text-sm">
+          <span className="flex items-center gap-2 font-extrabold text-[15px] bg-black/[0.12] rounded-full px-4 py-3">
             RD${total.toFixed(2)}
-            <ChevronRight size={18} strokeWidth={2.6} />
+            <ShoppingCart size={18} strokeWidth={2.4} />
           </span>
         </button>
       )}

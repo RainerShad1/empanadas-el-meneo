@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, User } from 'lucide-react';
+import { Home, Receipt, User } from 'lucide-react';
 import { useCart } from '@/store/cart';
 
 export default function BottomNav() {
@@ -9,24 +9,32 @@ export default function BottomNav() {
   const hydrated = useCart((s) => s.hydrated);
   const count = useCart((s) => s.count());
   const items = [
-    { href: '/menu', label: 'Menu', Icon: Home },
-    { href: '/orders', label: 'Pedidos', Icon: ShoppingBag },
+    { href: '/menu', label: 'Menú', Icon: Home },
+    { href: '/orders', label: 'Pedidos', Icon: Receipt },
     { href: '/perfil', label: 'Perfil', Icon: User },
   ];
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-surface/80 backdrop-blur-xl border-t border-white/10 flex pb-[env(safe-area-inset-bottom)]">
+    <nav
+      className="fixed bottom-0 inset-x-0 z-40 flex items-stretch border-t border-white/10 shadow-nav pb-[env(safe-area-inset-bottom)]"
+      style={{
+        height: 'var(--bottom-nav-h, 64px)',
+        background: 'rgba(21,21,29,0.72)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
+    >
       {items.map(({ href, label, Icon }) => {
         const active = path.startsWith(href);
         return (
           <Link
             key={href}
             href={href}
-            className={`flex-1 py-3 flex flex-col items-center gap-1 text-xs transition-colors ${
-              active ? 'text-primary' : 'text-muted'
+            className={`flex-1 flex flex-col items-center justify-center gap-1 text-[11px] transition-colors ${
+              active ? 'text-primary font-bold' : 'text-muted font-medium'
             }`}
           >
             <div className="relative">
-              <Icon size={22} strokeWidth={active ? 2.6 : 2} />
+              <Icon size={22} strokeWidth={active ? 2.4 : 2} />
               {href === '/menu' && hydrated && count > 0 && (
                 <span
                   key={count}
@@ -36,7 +44,7 @@ export default function BottomNav() {
                 </span>
               )}
             </div>
-            <span className={active ? 'font-semibold' : ''}>{label}</span>
+            <span>{label}</span>
           </Link>
         );
       })}

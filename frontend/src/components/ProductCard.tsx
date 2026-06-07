@@ -42,7 +42,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <button
           onClick={handleAdd}
           onAnimationEnd={() => setPopping(false)}
-          className={`bg-primary text-black rounded-full w-9 h-9 flex items-center justify-center shadow-lg shadow-primary/40 shrink-0 ${
+          className={`bg-primary text-black rounded-full w-9 h-9 flex items-center justify-center shadow-primary-sm shrink-0 ${
             popping ? 'animate-pop' : ''
           }`}
           aria-label={`Agregar ${product.nombre}`}
