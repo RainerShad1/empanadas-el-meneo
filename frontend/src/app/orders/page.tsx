@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Receipt, ChevronRight, RotateCcw } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Order, Product } from '@/types';
 import { useAuth } from '@/store/auth';
@@ -23,10 +24,7 @@ export default function MyOrders() {
       router.replace('/login');
       return;
     }
-    Promise.all([
-      api<Order[]>('/orders/mine'),
-      api<Product[]>('/products'), // solo activos
-    ])
+    Promise.all([api<Order[]>('/orders/mine'), api<Product[]>('/products')])
       .then(([o, p]) => {
         setOrders(o);
         setActiveProducts(p);
@@ -36,24 +34,19 @@ export default function MyOrders() {
   }, [hydrated, token, router]);
 
   const repeatOrder = (order: Order) => {
-    // Mapa de productos que siguen activos/disponibles
     const activeMap = new Map(activeProducts.map((p) => [p.id, p]));
-
-    clear(); // empezamos un carrito limpio con este pedido
+    clear();
     let agregados = 0;
     let omitidos = 0;
-
     order.items.forEach((it) => {
       const prod = activeMap.get(it.product.id);
       if (prod) {
-        // Agregamos la cantidad correspondiente
         for (let i = 0; i < it.cantidad; i++) add(prod);
         agregados++;
       } else {
         omitidos++;
       }
     });
-
     if (agregados === 0) {
       setRepeatMsg('Ninguno de esos productos esta disponible ahora.');
       return;
@@ -62,14 +55,28 @@ export default function MyOrders() {
       setRepeatMsg(
         `Agregamos los productos disponibles. ${omitidos} ya no estan en el menu.`,
       );
-      // Pequena pausa para que el cliente lea el aviso antes de ir al menu
       setTimeout(() => router.push('/menu'), 1400);
       return;
     }
     router.push('/menu');
   };
 
-  // Separamos activos de finalizados para ordenar mejor la vista
+  // Resumen corto de items: "2× Pollo · 1× Coca-Cola"
+  const itemsResumen = (o: Order) =>
+    o.items
+      .map((it) => `${it.cantidad}× ${it.product.nombre}`)
+      .join(' · ');
+
+  const fecha = (o: Order) => {
+    const d = new Date((o as any).createdAt || Date.now());
+    return d.toLocaleDateString('es-DO', {
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
   const activos = orders.filter((o) =>
     ['ENVIADO', 'EN_CAMINO'].includes(o.status),
   );
@@ -77,74 +84,82 @@ export default function MyOrders() {
     ['ENTREGADO', 'CANCELADO'].includes(o.status),
   );
 
-  const renderOrder = (o: Order) => (
+  const OrderCard = (o: Order) => (
     <div
       key={o.id}
-      className="bg-card rounded-2xl p-4 transition-transform active:scale-[0.98]"
+      className="bg-card rounded-2xl shadow-card overflow-hidden transition-transform active:scale-[0.98]"
     >
-      <div
-        className="flex justify-between items-center cursor-pointer"
+      <button
         onClick={() => router.push(`/orders/${o.id}`)}
+        className="w-full text-left p-4 flex items-center gap-3"
       >
-        <div>
-          <p className="font-semibold">{o.numero}</p>
-          <p className="text-muted text-sm">
-            {o.items.length} producto{o.items.length !== 1 ? 's' : ''} · RD$
-            {o.total}
+        <div className="w-[46px] h-[46px] rounded-xl bg-surface-2 flex items-center justify-center shrink-0">
+          <Receipt size={22} className="text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-[15px] font-bold">{o.numero}</span>
+          <p className="text-[13px] text-muted mt-0.5 truncate">
+            {itemsResumen(o)}
+          </p>
+          <p className="text-xs text-muted mt-1.5">
+            {fecha(o)} ·{' '}
+            <span className="text-primary font-bold">RD${o.total}</span>
           </p>
         </div>
-        <StatusBadge status={o.status} />
-      </div>
-      <div className="flex gap-2 mt-3">
-        <button
-          onClick={() => router.push(`/orders/${o.id}`)}
-          className="flex-1 bg-surface border border-white/10 rounded-xl py-2.5 text-sm text-muted"
-        >
-          Ver detalle
-        </button>
-        <button
-          onClick={() => repeatOrder(o)}
-          className="flex-1 bg-primary/15 text-primary rounded-xl py-2.5 text-sm font-semibold"
-        >
-          🔁 Repetir pedido
-        </button>
-      </div>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <StatusBadge status={o.status} />
+          <ChevronRight size={18} className="text-muted" />
+        </div>
+      </button>
+      {/* Repetir pedido (funcionalidad propia) */}
+      <button
+        onClick={() => repeatOrder(o)}
+        className="w-full border-t border-white/10 py-2.5 text-sm font-semibold text-primary flex items-center justify-center gap-1.5"
+      >
+        <RotateCcw size={15} /> Repetir pedido
+      </button>
     </div>
   );
 
   return (
-    <main className="px-4 pt-6">
-      <h1 className="text-2xl font-bold mb-4">Mis pedidos</h1>
+    <main className="pb-28">
+      <h1 className="text-2xl font-extrabold tracking-tight px-4 pt-5 pb-1">
+        Mis pedidos
+      </h1>
 
       {repeatMsg && (
-        <div className="bg-amber-500/15 text-amber-300 rounded-xl p-3 mb-4 text-sm animate-fade-in">
+        <div className="mx-4 bg-amber-500/15 text-amber-300 rounded-xl p-3 my-2 text-sm animate-fade-in">
           {repeatMsg}
         </div>
       )}
 
       {loading ? (
-        <p className="text-muted">Cargando...</p>
+        <p className="text-muted px-4 py-6">Cargando...</p>
       ) : orders.length === 0 ? (
-        <p className="text-muted text-center py-10">Aun no tienes pedidos.</p>
+        <p className="text-muted text-center py-16">Aún no tienes pedidos.</p>
       ) : (
-        <div className="space-y-6">
+        <>
           {activos.length > 0 && (
-            <section>
-              <h2 className="text-sm font-bold text-muted mb-2">
-                En proceso
-              </h2>
-              <div className="space-y-3 stagger">{activos.map(renderOrder)}</div>
-            </section>
+            <>
+              <p className="text-xs font-bold tracking-wider uppercase text-muted px-4 mt-5 mb-2.5">
+                Activos
+              </p>
+              <div className="flex flex-col gap-2.5 px-4 stagger">
+                {activos.map(OrderCard)}
+              </div>
+            </>
           )}
           {finalizados.length > 0 && (
-            <section>
-              <h2 className="text-sm font-bold text-muted mb-2">Anteriores</h2>
-              <div className="space-y-3 stagger">
-                {finalizados.map(renderOrder)}
+            <>
+              <p className="text-xs font-bold tracking-wider uppercase text-muted px-4 mt-5 mb-2.5">
+                Anteriores
+              </p>
+              <div className="flex flex-col gap-2.5 px-4 stagger">
+                {finalizados.map(OrderCard)}
               </div>
-            </section>
+            </>
           )}
-        </div>
+        </>
       )}
       <BottomNav />
     </main>

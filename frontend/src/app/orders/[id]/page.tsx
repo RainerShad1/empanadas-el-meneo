@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, Check, Croissant, Bike, Home, Star } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import { useAuth } from '@/store/auth';
@@ -8,10 +9,45 @@ import type { Order, OrderStatus } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
 import BottomNav from '@/components/BottomNav';
 
-const STEPS: OrderStatus[] = ['ENVIADO', 'EN_CAMINO', 'ENTREGADO'];
+// Los 4 pasos visuales del mock
+const STEPS = [
+  { label: 'Confirmado', Icon: Check },
+  { label: 'Preparando', Icon: Croissant },
+  { label: 'En camino', Icon: Bike },
+  { label: 'Entregado', Icon: Home },
+];
+
+// Mapea el estado real (3 estados) al indice del paso visual (4 pasos)
+function statusToStep(status: string): number {
+  switch (status) {
+    case 'ENVIADO':
+      return 1; // confirmado + preparando
+    case 'EN_CAMINO':
+      return 2;
+    case 'ENTREGADO':
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+// ETA segun estado
+function etaFor(status: string): { big: string; unit: string; label: string } {
+  switch (status) {
+    case 'ENVIADO':
+      return { big: '15-30', unit: 'min', label: 'Preparando tu pedido' };
+    case 'EN_CAMINO':
+      return { big: '10-15', unit: 'min', label: 'En camino' };
+    case 'ENTREGADO':
+      return { big: '✓', unit: '', label: 'Entregado' };
+    default:
+      return { big: '—', unit: '', label: '' };
+  }
+}
 
 export default function OrderTracking() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { userId } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
 
@@ -22,7 +58,6 @@ export default function OrderTracking() {
 
     const socket = getSocket();
     if (!socket.connected) socket.connect();
-    // Unirse a la sala personal para recibir cambios de estado
     if (userId) socket.emit('join', `user:${userId}`);
     const handler = (updated: Order) => {
       if (updated.id === id) setOrder(updated);
@@ -35,95 +70,129 @@ export default function OrderTracking() {
 
   if (!order) return <div className="p-6 text-muted">Cargando...</div>;
 
-  const currentIdx = STEPS.indexOf(order.status as OrderStatus);
   const cancelado = order.status === 'CANCELADO';
+  const step = statusToStep(order.status);
+  const eta = etaFor(order.status);
 
   return (
-    <main className="px-5 pt-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">{order.numero}</h1>
-        <StatusBadge status={order.status} />
+    <main className="pb-28">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 pt-5 pb-1.5">
+        <button
+          onClick={() => router.push('/orders')}
+          aria-label="Volver"
+          className="w-9 h-9 rounded-full bg-card flex items-center justify-center shrink-0"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-extrabold">{order.numero}</h1>
+        <div className="ml-auto">
+          <StatusBadge status={order.status} />
+        </div>
       </div>
 
-      {/* Estimado de llegada segun el estado */}
-      {order.status === 'ENVIADO' && (
-        <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-6 flex items-center gap-3 animate-fade-in">
-          <span className="text-2xl">🕒</span>
-          <div>
-            <p className="font-semibold">Llega en 15–30 min aprox.</p>
-            <p className="text-muted text-sm">
-              Estamos preparando tu pedido.
+      {cancelado ? (
+        <div className="mx-4 mt-6 bg-red-500/10 border border-red-500/20 rounded-2xl p-5 text-center">
+          <p className="font-bold text-red-300 text-lg">Pedido cancelado</p>
+          <p className="text-muted text-sm mt-1">
+            Este pedido fue cancelado. Si tienes dudas, contáctanos.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* ETA hero */}
+          <div className="text-center px-4 pt-6 pb-2">
+            <p className="text-[13px] text-muted">
+              {order.status === 'ENTREGADO' ? '¡Listo!' : 'Llega aprox. en'}
             </p>
-          </div>
-        </div>
-      )}
-      {order.status === 'EN_CAMINO' && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-6 flex items-center gap-3 animate-fade-in">
-          <span className="text-2xl">🛵</span>
-          <div>
-            <p className="font-semibold">Llega pronto, 10–15 min aprox.</p>
-            <p className="text-muted text-sm">Tu pedido va en camino.</p>
-          </div>
-        </div>
-      )}
-      {order.status === 'ENTREGADO' && (
-        <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4 mb-6 flex items-center gap-3 animate-fade-in">
-          <span className="text-2xl">✅</span>
-          <div>
-            <p className="font-semibold">Pedido entregado</p>
-            <p className="text-muted text-sm">Buen provecho!</p>
-          </div>
-        </div>
-      )}
-
-      {/* Linea de progreso */}
-      {!cancelado && (
-        <div className="flex items-center mb-8">
-          {STEPS.map((step, i) => (
-            <div key={step} className="flex-1 flex items-center">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-500 ${
-                  i <= currentIdx
-                    ? 'bg-primary text-black scale-110 shadow-lg shadow-primary/40'
-                    : 'bg-card text-muted'
-                }`}
-              >
-                {i < currentIdx ? '✓' : i + 1}
-              </div>
-              {i < STEPS.length - 1 && (
-                <div className="flex-1 h-1 bg-card rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-700 ease-out"
-                    style={{ width: i < currentIdx ? '100%' : '0%' }}
-                  />
-                </div>
+            <p className="text-[44px] font-extrabold leading-none mt-1.5 tracking-tight">
+              {eta.big}
+              {eta.unit && (
+                <span className="text-xl text-muted font-bold"> {eta.unit}</span>
               )}
+            </p>
+            <p className="text-sm text-primary font-bold mt-1.5">{eta.label}</p>
+          </div>
+
+          {/* Barra de progreso de 4 pasos */}
+          <div className="px-7 pt-6 pb-2">
+            <div className="relative flex justify-between">
+              {/* Linea base */}
+              <div className="absolute top-[22px] left-[22px] right-[22px] h-[3px] bg-surface-2 rounded-full" />
+              {/* Linea de progreso */}
+              <div
+                className="absolute top-[22px] left-[22px] h-[3px] bg-primary rounded-full transition-all duration-500"
+                style={{
+                  width: `calc((100% - 44px) * ${step / (STEPS.length - 1)})`,
+                }}
+              />
+              {STEPS.map((s, idx) => {
+                const done = idx <= step;
+                const current = idx === step;
+                return (
+                  <div
+                    key={s.label}
+                    className="relative z-10 flex flex-col items-center gap-2 w-14"
+                  >
+                    <div
+                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        done ? 'bg-primary text-black' : 'bg-surface-2 text-muted'
+                      } ${current ? 'shadow-primary-sm' : ''}`}
+                    >
+                      <s.Icon size={20} strokeWidth={2.4} />
+                    </div>
+                    <span
+                      className={`text-[11px] text-center ${
+                        current ? 'font-bold' : 'font-medium'
+                      } ${done ? 'text-white' : 'text-muted'}`}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Tarjeta del repartidor (si hay uno asignado) */}
+          {order.delivery && (
+            <div className="mx-4 mt-5 bg-card rounded-2xl p-4 flex items-center gap-3.5 shadow-card">
+              <div className="w-[46px] h-[46px] rounded-full bg-surface-2 flex items-center justify-center shrink-0">
+                <Bike size={22} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">
+                  {order.delivery.nombre} — Repartidor
+                </p>
+                <p className="text-xs text-muted mt-0.5">En tu zona</p>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      <div className="bg-card rounded-2xl p-4 mb-4 animate-fade-in-up">
+      {/* Resumen del pedido */}
+      <div className="mx-4 mt-3.5 bg-card rounded-2xl p-4 shadow-card animate-fade-in-up">
+        <p className="text-[13px] font-bold text-muted mb-2.5">Resumen</p>
         {order.items.map((it) => (
-          <div key={it.id} className="flex justify-between py-1">
+          <div
+            key={it.id}
+            className="flex justify-between py-[5px] text-sm"
+          >
             <span>
-              {it.cantidad}x {it.product.nombre}
+              {it.cantidad}× {it.product.nombre}
             </span>
-            <span className="text-muted">RD${it.precioUnit}</span>
+            <span className="text-muted">
+              RD${(Number(it.precioUnit) * it.cantidad).toFixed(0)}
+            </span>
           </div>
         ))}
-        <div className="flex justify-between font-bold mt-2 pt-2 border-t border-white/10">
-          <span>Total</span>
-          <span className="text-accent">RD${order.total}</span>
+        <div className="flex justify-between mt-2 pt-2.5 border-t border-white/10">
+          <span className="font-extrabold">Total</span>
+          <span className="font-extrabold text-primary">RD${order.total}</span>
         </div>
       </div>
 
-      {order.delivery && (
-        <div className="bg-card rounded-2xl p-4">
-          <p className="text-muted text-sm">Tu repartidor</p>
-          <p className="font-semibold">{order.delivery.nombre}</p>
-        </div>
-      )}
       <BottomNav />
     </main>
   );
