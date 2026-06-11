@@ -76,10 +76,12 @@ export default function Menu() {
           <div className="flex items-center gap-2.5 min-w-0">
             <Logo size={40} />
             <div className="min-w-0">
-              <p className="text-muted text-[13px]">Hola,</p>
               <h1 className="text-[22px] font-extrabold leading-tight tracking-tight truncate">
-                {nombre ? `${nombre} 👋` : 'Super Empanada El Meneo'}
+                {nombre ? `Hola, ${nombre}` : 'Hola 👋'}
               </h1>
+              <p className="text-muted text-[12px] font-medium leading-tight truncate opacity-70">
+                Super Empanada El Meneo
+              </p>
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -128,10 +130,10 @@ export default function Menu() {
         <div className="relative">
           <Search
             size={18}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
           />
           <input
-            className="input pl-11"
+            className="input pl-[2.9rem]"
             placeholder="Buscar empanadas, batidas…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
