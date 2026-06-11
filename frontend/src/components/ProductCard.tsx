@@ -1,11 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 import type { Product } from '@/types';
 import { useCart } from '@/store/cart';
 
 export default function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
+  const setQty = useCart((s) => s.setQty);
+  // Cantidad de ESTE producto en el carrito (0 si no esta)
+  const cantidad = useCart(
+    (s) => s.lines.find((l) => l.product.id === product.id)?.cantidad ?? 0,
+  );
   const [popping, setPopping] = useState(false);
 
   const handleAdd = () => {
@@ -37,18 +42,40 @@ export default function ProductCard({ product }: { product: Product }) {
         </p>
       </div>
 
-      {/* Boton + a la derecha */}
+      {/* Control: boton + (si cantidad 0) o stepper (si hay en carrito) */}
       <div className="flex items-center pr-3">
-        <button
-          onClick={handleAdd}
-          onAnimationEnd={() => setPopping(false)}
-          className={`bg-primary text-black rounded-full w-9 h-9 flex items-center justify-center shadow-primary-sm shrink-0 ${
-            popping ? 'animate-pop' : ''
-          }`}
-          aria-label={`Agregar ${product.nombre}`}
-        >
-          <Plus size={20} strokeWidth={3} />
-        </button>
+        {cantidad === 0 ? (
+          <button
+            onClick={handleAdd}
+            onAnimationEnd={() => setPopping(false)}
+            className={`bg-primary text-black rounded-full w-9 h-9 flex items-center justify-center shadow-primary-sm shrink-0 ${
+              popping ? 'animate-pop' : ''
+            }`}
+            aria-label={`Agregar ${product.nombre}`}
+          >
+            <Plus size={20} strokeWidth={3} />
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 bg-surface-2 rounded-full p-1 shrink-0 animate-fade-in">
+            <button
+              onClick={() => setQty(product.id, cantidad - 1)}
+              className="w-7 h-7 rounded-full bg-card flex items-center justify-center"
+              aria-label={`Quitar ${product.nombre}`}
+            >
+              <Minus size={15} strokeWidth={3} />
+            </button>
+            <span className="min-w-[18px] text-center text-sm font-bold">
+              {cantidad}
+            </span>
+            <button
+              onClick={() => setQty(product.id, cantidad + 1)}
+              className="w-7 h-7 rounded-full bg-primary text-black flex items-center justify-center"
+              aria-label={`Agregar otro ${product.nombre}`}
+            >
+              <Plus size={15} strokeWidth={3} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

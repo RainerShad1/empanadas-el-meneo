@@ -4,6 +4,7 @@ import { Search, Bell, Clock, ShoppingCart, UtensilsCrossed, type LucideIcon } f
 import { api } from '@/lib/api';
 import type { Product, Category } from '@/types';
 import { getCategoryIcon } from '@/lib/categoryIcon';
+import Logo from '@/components/Logo';
 import ProductCard from '@/components/ProductCard';
 import CartSheet from '@/components/CartSheet';
 import BottomNav from '@/components/BottomNav';
@@ -72,11 +73,14 @@ export default function Menu() {
       {/* ===== Header ===== */}
       <div className="px-4 pt-5 pb-2">
         <div className="flex items-start justify-between">
-          <div className="min-w-0">
-            <p className="text-muted text-[13px]">Hola,</p>
-            <h1 className="text-[22px] font-extrabold leading-tight tracking-tight truncate">
-              {nombre ? `${nombre} 👋` : 'Super Empanada El Meneo'}
-            </h1>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Logo size={40} />
+            <div className="min-w-0">
+              <p className="text-muted text-[13px]">Hola,</p>
+              <h1 className="text-[22px] font-extrabold leading-tight tracking-tight truncate">
+                {nombre ? `${nombre} 👋` : 'Super Empanada El Meneo'}
+              </h1>
+            </div>
           </div>
           <div className="flex gap-2 shrink-0">
             <button
